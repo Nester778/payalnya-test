@@ -146,15 +146,29 @@ export const useProjectStore = defineStore('project', {
             this.error = null;
 
             try {
-                const response = await api.post<ApiResponse<Project>>('/projects', projectData);
+                const tempProject: Project = {
+                    _id: `temp_${Date.now()}`,
+                    name: projectData.name,
+                    description: projectData.description || '',
+                    status: projectData.status || 'To do',
+                    tasksCount: 0,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
 
-                if (response.success) {
-                    this.projects.unshift(response.data);
-                    return response.data;
-                } else {
-                    throw new Error(response.error || 'Failed to create project');
+                this.projects.unshift(tempProject);
+
+                const realProject = await this.sendCreateRequest(projectData);
+
+                const tempIndex = this.projects.findIndex(p => p._id === tempProject._id);
+                if (tempIndex !== -1) {
+                    this.projects[tempIndex] = realProject;
                 }
+
+                return realProject;
             } catch (err: any) {
+                this.projects = this.projects.filter(p => !p._id.startsWith('temp_'));
+
                 this.error = err.message || 'Error creating project';
                 console.error('Error creating project:', err);
                 throw err;
@@ -163,27 +177,47 @@ export const useProjectStore = defineStore('project', {
             }
         },
 
+        async sendCreateRequest(projectData: ProjectFormData) {
+            const response = await api.post<ApiResponse<Project>>('/projects', projectData);
+
+            if (response.success) {
+                return response.data;
+            } else {
+                throw new Error(response.error || 'Failed to create project');
+            }
+        },
+
         async updateProject(id: string, projectData: Partial<ProjectFormData>) {
             this.isLoading = true;
             this.error = null;
 
             try {
-                const response = await api.put<ApiResponse<Project>>(`/projects/${id}`, projectData);
-
-                if (response.success) {
-                    const index = this.projects.findIndex(p => p._id === id);
-                    if (index !== -1) {
-                        this.projects[index] = { ...this.projects[index], ...response.data };
-                    }
-
-                    if (this.currentProject?._id === id) {
-                        this.currentProject = { ...this.currentProject, ...response.data };
-                    }
-
-                    return response.data;
-                } else {
-                    throw new Error(response.error || 'Failed to update project');
+                const index = this.projects.findIndex(p => p._id === id);
+                if (index === -1) {
+                    throw new Error('Project not found');
                 }
+
+                const oldProject = { ...this.projects[index] };
+
+                this.projects[index] = {
+                    ...this.projects[index],
+                    ...projectData,
+                    updatedAt: new Date().toISOString()
+                };
+
+                if (this.currentProject?._id === id) {
+                    this.currentProject = { ...this.currentProject, ...projectData };
+                }
+
+                this.sendUpdateRequest(id, projectData).catch(err => {
+                    console.error('Background update failed:', err);
+                    this.projects[index] = oldProject;
+                    if (this.currentProject?._id === id) {
+                        this.currentProject = oldProject;
+                    }
+                });
+
+                return this.projects[index];
             } catch (err: any) {
                 this.error = err.message || 'Error updating project';
                 console.error('Error updating project:', err);
@@ -193,28 +227,54 @@ export const useProjectStore = defineStore('project', {
             }
         },
 
+        async sendUpdateRequest(id: string, projectData: Partial<ProjectFormData>) {
+            const response = await api.put<ApiResponse<Project>>(`/projects/${id}`, projectData);
+
+            if (response.success) {
+                console.log('Project updated on server:', response.data);
+            } else {
+                throw new Error(response.error || 'Failed to update project on server');
+            }
+        },
+
         async deleteProject(id: string) {
             this.isLoading = true;
             this.error = null;
 
             try {
-                const response = await api.delete<ApiResponse<{}>>(`/projects/${id}`);
-
-                if (response.success) {
-                    this.projects = this.projects.filter(p => p._id !== id);
-
-                    if (this.currentProject?._id === id) {
-                        this.currentProject = null;
-                    }
-                } else {
-                    throw new Error(response.error || 'Failed to delete project');
+                const deletedProject = this.projects.find(p => p._id === id);
+                if (!deletedProject) {
+                    throw new Error('Project not found');
                 }
+
+                this.projects = this.projects.filter(p => p._id !== id);
+
+                if (this.currentProject?._id === id) {
+                    this.currentProject = null;
+                }
+
+                this.sendDeleteRequest(id).catch(err => {
+                    console.error('Background delete failed:', err);
+                    if (deletedProject) {
+                        this.projects.push(deletedProject);
+                    }
+                });
             } catch (err: any) {
                 this.error = err.message || 'Error deleting project';
                 console.error('Error deleting project:', err);
                 throw err;
             } finally {
                 this.isLoading = false;
+            }
+        },
+
+        async sendDeleteRequest(id: string) {
+            const response = await api.delete<ApiResponse<{}>>(`/projects/${id}`);
+
+            if (response.success) {
+                console.log('Project deleted on server:', id);
+            } else {
+                throw new Error(response.error || 'Failed to delete project on server');
             }
         },
 
