@@ -8,19 +8,6 @@ import type {
 } from '@/types';
 import api from '@/services/api';
 
-const localStorageUtils = {
-    get(key: string, defaultValue: any) {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : defaultValue;
-    },
-    set(key: string, value: any) {
-        localStorage.setItem(key, JSON.stringify(value));
-    },
-    removeItem(key: string) {
-        localStorage.removeItem(key);
-    }
-};
-
 export const useProjectStore = defineStore('project', {
     state: () => ({
         projects: [] as Project[],
@@ -99,7 +86,6 @@ export const useProjectStore = defineStore('project', {
             state.projects.filter(p => p.status === 'Done').length,
     },
 
-    // Actions
     actions: {
         async fetchProjects() {
             this.isLoading = true;
@@ -124,19 +110,12 @@ export const useProjectStore = defineStore('project', {
 
                 if (response.success) {
                     this.projects = response.data;
-                    localStorageUtils.set('projects', this.projects);
                 } else {
                     throw new Error(response.error || 'Failed to fetch projects');
                 }
             } catch (err: any) {
                 this.error = err.message || 'Error fetching projects';
                 console.error('Error fetching projects:', err);
-
-                const cachedProjects = localStorageUtils.get('projects', []);
-                if (cachedProjects.length > 0) {
-                    this.projects = cachedProjects;
-                    console.warn('Loaded projects from cache due to network error');
-                }
             } finally {
                 this.isLoading = false;
             }
@@ -151,18 +130,12 @@ export const useProjectStore = defineStore('project', {
 
                 if (response.success) {
                     this.currentProject = response.data;
-                    localStorageUtils.set(`project_${id}`, response.data);
                 } else {
                     throw new Error(response.error || 'Project not found');
                 }
             } catch (err: any) {
                 this.error = err.message || 'Error fetching project';
                 console.error('Error fetching project:', err);
-
-                const cachedProject = localStorageUtils.get(`project_${id}`, null);
-                if (cachedProject) {
-                    this.currentProject = cachedProject;
-                }
             } finally {
                 this.isLoading = false;
             }
@@ -177,7 +150,6 @@ export const useProjectStore = defineStore('project', {
 
                 if (response.success) {
                     this.projects.unshift(response.data);
-                    localStorageUtils.set('projects', this.projects);
                     return response.data;
                 } else {
                     throw new Error(response.error || 'Failed to create project');
@@ -208,7 +180,6 @@ export const useProjectStore = defineStore('project', {
                         this.currentProject = { ...this.currentProject, ...response.data };
                     }
 
-                    localStorageUtils.set('projects', this.projects);
                     return response.data;
                 } else {
                     throw new Error(response.error || 'Failed to update project');
@@ -235,8 +206,6 @@ export const useProjectStore = defineStore('project', {
                     if (this.currentProject?._id === id) {
                         this.currentProject = null;
                     }
-
-                    localStorageUtils.set('projects', this.projects);
                 } else {
                     throw new Error(response.error || 'Failed to delete project');
                 }
@@ -263,7 +232,6 @@ export const useProjectStore = defineStore('project', {
 
         setFilters(newFilters: Partial<ProjectFilters>) {
             this.filters = { ...this.filters, ...newFilters };
-            localStorageUtils.set('projectFilters', this.filters);
         },
 
         clearFilters() {
@@ -272,33 +240,10 @@ export const useProjectStore = defineStore('project', {
                 search: '',
                 sort: 'createdAt:desc'
             };
-            localStorageUtils.removeItem('projectFilters');
         },
 
         clearError() {
             this.error = null;
-        },
-
-        loadFromLocalStorage() {
-            const cachedProjects = localStorageUtils.get('projects', []);
-            if (cachedProjects.length > 0) {
-                this.projects = cachedProjects;
-            }
-
-            const cachedFilters = localStorageUtils.get('projectFilters', null);
-            if (cachedFilters) {
-                this.filters = cachedFilters;
-            }
-        },
-
-        initialize() {
-            this.loadFromLocalStorage();
         }
-    },
-
-    persist: {
-        key: 'project-store',
-        paths: ['filters'],
-        storage: localStorage,
     }
 });

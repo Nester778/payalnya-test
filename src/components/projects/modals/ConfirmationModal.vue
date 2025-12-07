@@ -175,7 +175,7 @@ typedConfirmation.value = ''
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/main';
+@use '@/assets/styles/main.scss' as *;
 
 .modal-overlay {
   position: fixed;
@@ -381,7 +381,7 @@ typedConfirmation.value = ''
     color: white;
 
     &:hover:not(:disabled) {
-      background: darken($secondary-color, 10%);
+      background: darken-color($secondary-color, 10%);
     }
 
     &:disabled {
@@ -393,7 +393,7 @@ typedConfirmation.value = ''
       background: $danger-color;
 
       &:hover:not(:disabled) {
-        background: darken($danger-color, 10%);
+        background: darken-color($danger-color, 10%);
       }
     }
 
@@ -401,7 +401,7 @@ typedConfirmation.value = ''
       background: $warning-color;
 
       &:hover:not(:disabled) {
-        background: darken($warning-color, 10%);
+        background: darken-color($warning-color, 10%);
       }
     }
   }

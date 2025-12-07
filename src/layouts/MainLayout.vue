@@ -1,6 +1,5 @@
 <template>
   <div class="app-layout">
-    <!-- Навигационная панель -->
     <nav class="navbar">
       <div class="navbar-brand">
         <router-link to="/" class="logo">
@@ -92,7 +91,7 @@ const showBreadcrumbs = computed(() => {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/main.scss';
+@use '@/assets/styles/main.scss' as *;
 
 .app-layout {
   min-height: 100vh;
@@ -106,7 +105,7 @@ const showBreadcrumbs = computed(() => {
   justify-content: space-between;
   padding: 0 2rem;
   height: 64px;
-  background: linear-gradient(135deg, $primary-color, darken($primary-color, 5%));
+  background: linear-gradient(135deg, $primary-color, darken-color($primary-color, 5%));
   color: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 

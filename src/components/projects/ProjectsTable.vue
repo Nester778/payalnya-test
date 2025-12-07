@@ -195,7 +195,7 @@ document.addEventListener('mouseup', stopResize)
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/main.scss';
+@use '@/assets/styles/main.scss' as *;
 
 .projects-table-container {
   background: white;

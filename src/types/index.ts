@@ -7,7 +7,7 @@ export interface BaseEntity {
 export interface Project extends BaseEntity {
     name: string;
     description: string;
-    status: 'To do' | 'In progress' | 'Done';
+    status: string;
     tasksCount: number;
     createdBy: string;
 }
@@ -16,8 +16,8 @@ export interface Task extends BaseEntity {
     title: string;
     description: string;
     assignee: string | null;
-    status: 'todo' | 'in_progress' | 'done';
-    priority: 'low' | 'medium' | 'high';
+    status: string;
+    priority: string;
     dueDate: string;
     projectId: string;
     order: number;
@@ -39,24 +39,24 @@ export interface TaskFilters {
 export interface ProjectFormData {
     name: string;
     description: string;
-    status?: 'To do' | 'In progress' | 'Done';
+    status?: string;
 }
 
 export interface TaskFormData {
     title: string;
     description?: string;
     assignee?: string | null;
-    status: 'todo' | 'in_progress' | 'done';
-    priority?: 'low' | 'medium' | 'high';
+    status: string;
+    priority?: string;
     dueDate?: string;
     projectId: string;
 }
 
 export interface TaskReorderData {
     taskId: string;
-    status: 'todo' | 'in_progress' | 'done';
+    status: string;
     order: number;
-    prevStatus?: 'todo' | 'in_progress' | 'done';
+    prevStatus?: string;
     prevOrder?: number;
 }
 

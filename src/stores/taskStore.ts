@@ -10,7 +10,6 @@ import type {
 import api from '@/services/api';
 
 export const useTaskStore = defineStore('task', {
-    // State
     state: () => ({
         tasks: [] as Task[],
         currentTask: null as Task | null,
@@ -26,7 +25,6 @@ export const useTaskStore = defineStore('task', {
         currentProjectId: null as string | null,
     }),
 
-    // Getters
     getters: {
         filteredTasks(state) {
             let filtered = [...state.tasks];
@@ -199,7 +197,6 @@ export const useTaskStore = defineStore('task', {
                     dueDate: taskData.dueDate,
                     projectId: taskData.projectId,
                     order: this.tasks.filter(t => t.status === taskData.status).length,
-                    createdBy: 'local',
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
@@ -445,11 +442,5 @@ export const useTaskStore = defineStore('task', {
             this.stats = null;
             this.clearFilters();
         },
-    },
-
-    persist: {
-        key: 'task-store',
-        paths: ['filters'],
-        storage: localStorage,
     }
 });

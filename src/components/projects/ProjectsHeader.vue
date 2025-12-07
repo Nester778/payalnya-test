@@ -25,7 +25,7 @@ defineEmits<{
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/main.scss';
+@use '@/assets/styles/main.scss' as *;
 
 .projects-header {
   display: flex;
@@ -85,7 +85,7 @@ defineEmits<{
     transition: all 0.3s ease;
 
     &:hover {
-      background: darken($secondary-color, 10%);
+      background: darken-color($secondary-color, 10%);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba($secondary-color, 0.3);
     }

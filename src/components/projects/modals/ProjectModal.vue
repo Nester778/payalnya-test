@@ -150,7 +150,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/main.scss';
+@use '@/assets/styles/main.scss' as *;
 
 .modal-overlay {
   position: fixed;
@@ -321,7 +321,7 @@ form {
     color: white;
 
     &:hover:not(:disabled) {
-      background: darken($secondary-color, 10%);
+      background: darken-color($secondary-color, 10%);
     }
 
     &:disabled {
@@ -331,7 +331,6 @@ form {
   }
 }
 
-// Responsive adjustments
 @media (max-width: 768px) {
   .modal-header {
     padding: 1.25rem;

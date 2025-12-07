@@ -69,21 +69,16 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-vue-next'
-
-// Components
 import ProjectsHeader from '@/components/projects/ProjectsHeader.vue'
 import ProjectsFilters from '@/components/projects/ProjectsFilters.vue'
 import ProjectsTable from '@/components/projects/ProjectsTable.vue'
 import ProjectModal from '@/components/projects/modals/ProjectModal.vue'
 import ConfirmationModal from '@/components/projects/modals/ConfirmationModal.vue'
-
-// Types
 import type { Project, ProjectFormData } from '@/types'
 
 const router = useRouter()
 const projectStore = useProjectStore()
 
-// State
 const searchQuery = ref('')
 const statusFilter = ref('all')
 const sortField = ref('createdAt')
@@ -94,7 +89,6 @@ const modalMode = ref<'create' | 'edit'>('create')
 const editingProject = ref<Project | null>(null)
 const projectToDelete = ref<Project | null>(null)
 
-// Resizable columns
 const columns = ref([
   { key: '_id', label: 'ID', width: 120 },
   { key: 'name', label: 'Project Name', width: 300 },
@@ -103,7 +97,6 @@ const columns = ref([
   { key: 'createdAt', label: 'Created Date', width: 150 }
 ])
 
-// Computed
 const isLoading = computed(() => projectStore.isLoading)
 const error = computed(() => projectStore.error)
 const projects = computed(() => projectStore.projects)
@@ -111,12 +104,10 @@ const projects = computed(() => projectStore.projects)
 const filteredProjects = computed(() => {
   let filtered = [...projects.value]
 
-  // Apply status filter
   if (statusFilter.value !== 'all') {
     filtered = filtered.filter(project => project.status === statusFilter.value)
   }
 
-  // Apply search filter
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase().trim()
     filtered = filtered.filter(project =>
@@ -125,18 +116,15 @@ const filteredProjects = computed(() => {
     )
   }
 
-  // Apply sorting
   filtered.sort((a, b) => {
     let aValue: any = a[sortField.value as keyof Project]
     let bValue: any = b[sortField.value as keyof Project]
 
-    // Handle dates
     if (sortField.value === 'createdAt') {
       aValue = new Date(aValue).getTime()
       bValue = new Date(bValue).getTime()
     }
 
-    // Handle strings
     if (typeof aValue === 'string') {
       aValue = aValue.toLowerCase()
       bValue = bValue.toLowerCase()
@@ -152,13 +140,11 @@ const filteredProjects = computed(() => {
   return filtered
 })
 
-// Lifecycle
 onMounted(async () => {
   await loadProjects()
   loadSavedState()
 })
 
-// Methods
 const loadProjects = async () => {
   try {
     await projectStore.fetchProjects()
@@ -176,7 +162,6 @@ const loadSavedState = () => {
     sortField.value = state.sortField || 'createdAt'
     sortDirection.value = state.sortDirection || 'desc'
 
-    // Load column widths
     if (state.columnWidths) {
       columns.value = columns.value.map(col => ({
         ...col,
@@ -200,7 +185,6 @@ const saveState = () => {
   localStorage.setItem('projectsTableState', JSON.stringify(state))
 }
 
-// Event handlers
 const handleSearch = (value: string) => {
   searchQuery.value = value
   saveState()
@@ -247,7 +231,6 @@ const updateColumnWidth = (columnKey: string, width: number) => {
   }
 }
 
-// Project CRUD
 const openCreateModal = () => {
   modalMode.value = 'create'
   editingProject.value = null
@@ -309,7 +292,7 @@ const fetchProjects = () => {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/main.scss';
+@use '@/assets/styles/main.scss' as *;
 
 .projects-view {
   padding: 2rem;
@@ -370,7 +353,7 @@ const fetchProjects = () => {
     transition: all 0.3s ease;
 
     &:hover {
-      background: darken($danger-color, 10%);
+      background: darken-color($danger-color, 10%);
     }
   }
 }

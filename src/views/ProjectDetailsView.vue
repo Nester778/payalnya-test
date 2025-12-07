@@ -153,9 +153,12 @@
         v-if="!isLoading && viewMode === 'table' && filteredTasks.length > 0"
         :tasks="filteredTasks"
         :project-id="projectId"
+        :column-widths="taskColumnWidths"
+        table-id="projectTasks"
         @edit-task="openEditModal"
         @delete-task="confirmDelete"
         @update-task="handleUpdateTask"
+        @update:columnWidths="handleColumnWidthsUpdate"
     />
 
     <div v-if="!isLoading && viewMode === 'kanban'" class="kanban-container">
@@ -179,7 +182,7 @@
       </button>
     </div>
 
-    <TaskModal
+    <EditTaskModal
         v-if="showTaskModal"
         :task="editingTask"
         :project-id="projectId"
@@ -233,7 +236,7 @@ import {
 } from 'lucide-vue-next'
 import TasksTable from '@/components/tasks/TasksTable.vue'
 import KanbanBoard from '@/components/tasks/KanbanBoard.vue'
-import TaskModal from '@/components/tasks/modals/TaskModal.vue'
+import EditTaskModal from '@/components/tasks/modals/EditTaskModal.vue'
 import ConfirmationModal from '@/components/projects/modals/ConfirmationModal.vue'
 
 import type { Task, TaskFormData } from '@/types'
@@ -388,12 +391,18 @@ const loadTasks = async () => {
   }
 }
 
+const taskColumnWidths = ref<Record<string, number>>({})
+
 const loadSavedState = () => {
   const savedState = localStorage.getItem(`projectDetails_${projectId.value}`)
   if (savedState) {
     const state = JSON.parse(savedState)
 
     viewMode.value = state.viewMode || 'table'
+
+    if (state.columnWidths) {
+      taskColumnWidths.value = state.columnWidths
+    }
 
     if (state.filters) {
       const { search = '', status = 'all', assignee = 'all' } = state.filters
@@ -410,6 +419,7 @@ const loadSavedState = () => {
 const saveState = () => {
   const state = {
     viewMode: viewMode.value,
+    columnWidths: taskColumnWidths.value,
     filters: {
       search: localSearch.value,
       status: localStatus.value,
@@ -417,6 +427,11 @@ const saveState = () => {
     }
   }
   localStorage.setItem(`projectDetails_${projectId.value}`, JSON.stringify(state))
+}
+
+const handleColumnWidthsUpdate = (widths: Record<string, number>) => {
+  taskColumnWidths.value = widths
+  saveState()
 }
 
 const getStatusColor = (status: string) => {
@@ -548,7 +563,6 @@ const handleDeleteTask = async () => {
   }
 }
 
-// Watch
 watch(() => route.params.id, async (newId) => {
   if (newId) {
     await loadProjectDetails()
@@ -563,7 +577,7 @@ watch([viewMode, localSearch, localStatus, localAssignee], () => {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/main.scss';
+@use '@/assets/styles/main.scss' as *;
 
 .project-details-view {
   padding: 2rem;
@@ -588,7 +602,7 @@ watch([viewMode, localSearch, localStatus, localAssignee], () => {
       transition: all 0.3s ease;
 
       &:hover {
-        color: darken($secondary-color, 10%);
+        color: darken-color($secondary-color, 10%);
       }
     }
   }
@@ -927,7 +941,7 @@ watch([viewMode, localSearch, localStatus, localAssignee], () => {
       white-space: nowrap;
 
       &:hover {
-        background: darken($secondary-color, 10%);
+        background: darken-color($secondary-color, 10%);
         transform: translateY(-2px);
       }
 
@@ -1008,7 +1022,7 @@ watch([viewMode, localSearch, localStatus, localAssignee], () => {
     margin-top: 1rem;
 
     &:hover {
-      background: darken($secondary-color, 10%);
+      background: darken-color($secondary-color, 10%);
       transform: translateY(-2px);
     }
   }
